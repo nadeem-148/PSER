@@ -1,0 +1,46 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Install Cordova
+      run: |
+        npm install -g cordova
+        
+    - name: Create Cordova app
+      run: |
+        cordova create myapp com.pser.survey "PSER Survey"
+        
+    - name: Copy files
+      run: |
+        # Copy all your root files to Cordova www folder
+        cp index.html myapp/www/
+        cp app.js myapp/www/
+        cp styles.css myapp/www/
+        cp manifest.json myapp/www/
+        cp sw.js myapp/www/
+        
+    - name: Add Android
+      working-directory: ./myapp
+      run: |
+        cordova platform add android
+        
+    - name: Build APK
+      working-directory: ./myapp
+      run: |
+        cordova build android
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: pser-app
+        path: myapp/platforms/android/app/build/outputs/apk/**/*.apk
